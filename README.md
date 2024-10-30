@@ -19,7 +19,7 @@ To install this application, follow these steps:
 1. Clone the repository:
 
    ```bash
-   git clone https://https://github.com/parzi-val/grocery_app_apis
+   git clone https://github.com/parzi-val/grocery_app_apis
    ```
 
 2. Navigate into the project directory:
