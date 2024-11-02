@@ -86,4 +86,8 @@ const searchProducts = async (req, res) => {
     }
 };
 
-module.exports = { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct, searchProducts };
+const getCategories = async (req, res) => {
+    // TODO implement
+}
+
+module.exports = { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct, searchProducts, getCategories };

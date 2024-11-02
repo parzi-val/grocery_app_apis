@@ -103,13 +103,12 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
     // Validate input
     const errors = validationResult(req);
-    console.log(req)
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
 
     try {
-        const { name, email, address } = req.body; // Destructure address from body
+        const { name, email, address, phoneNumber } = req.body; // Destructure address from body
 
         // Find and update the user
         const user = await User.findById(req.user._id); // Use req.userId set by the middleware
@@ -117,10 +116,11 @@ const updateProfile = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-
+        console.log(phoneNumber)
         // Update user fields
         if (name) user.name = name;
         if (email) user.email = email;
+        if (phoneNumber) user.phoneNumber = phoneNumber;
 
         // Update address fields if provided
         if (address) {
@@ -139,4 +139,17 @@ const updateProfile = async (req, res) => {
     }
 };
 
-module.exports = { registerUser, loginUser, getProfile, updateProfile };
+const checkType = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+    res. status(200).json({ userType: user.type });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
+
+module.exports = { registerUser, loginUser, getProfile, updateProfile, checkType };

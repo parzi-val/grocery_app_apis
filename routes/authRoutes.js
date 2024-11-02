@@ -1,6 +1,6 @@
 // routes/userRoutes.js
 const express = require('express');
-const { registerUser, loginUser, getProfile, updateProfile } = require('../controllers/authController');
+const { registerUser, loginUser, getProfile, updateProfile, checkType } = require('../controllers/authController');
 const authenticateJWT = require('../middlewares/authMiddleware');
 
 const router = express.Router();
@@ -12,5 +12,5 @@ router.post('/login', loginUser);
 // Protected routes
 router.get('/profile', authenticateJWT, getProfile);
 router.put('/profile', authenticateJWT, updateProfile);
-
+router.get('/role', authenticateJWT, checkType);
 module.exports = router;
