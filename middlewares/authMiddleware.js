@@ -23,8 +23,13 @@ const authenticateJWT = async (req, res, next) => {
         req.user = user;
         next();
     } catch (error) {
-        console.error('JWT authentication error:', error);
-        return res.status(403).json({ message: 'Invalid token' });
+        if (error instanceof jwt.TokenExpiredError) {
+            console.error(error);
+            res.status(403).json({ message: 'Token expired' }); // Handle token expiration specifically
+        } else {
+            console.error(error);
+            res.status(500).json({ message: 'Server error' }); // Handle all other errors
+        }
     }
 };
 

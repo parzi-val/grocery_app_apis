@@ -3,9 +3,9 @@ const Product = require('../models/Product'); // Ensure product exists before ad
 
 const addToCart = async (req, res) => {
     try {
+        
         const userId = req.user._id; // Assuming user authentication middleware adds user to req
         const { productId, quantity } = req.body;
-
         // Check if the product exists
         const product = await Product.findById(productId);
         if (!product) return res.status(404).json({ message: 'Product not found' });
