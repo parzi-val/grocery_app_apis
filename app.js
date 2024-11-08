@@ -5,6 +5,7 @@ const authRoutes = require('./routes/authRoutes'); // Import authRoutes
 const productRoutes = require('./routes/productRoutes'); // Import productRoutes
 const cartRoutes = require('./routes/cartRoutes'); // Import cartRoutes
 const orderRoutes = require('./routes/orderRoutes'); // Import orderRoutes
+const paymentRoutes = require('./routes/PaymentRoutes');
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/api/auth', authRoutes); // Use authRoutes
 app.use('/api/products', productRoutes); // Use productRoutes
 app.use('/api/cart', cartRoutes); // Use cartRoutes
 app.use('/api/orders', orderRoutes); // Use orderRoutes
+app.use('/api/payments', paymentRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
