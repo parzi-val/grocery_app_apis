@@ -7,8 +7,9 @@ const router = express.Router();
 
 // Public routes
 
+router.get('/', getAllProducts);                 // Get all products (public access)
 router.get('/categories', getCategories)
-router.get('/', searchProducts);
+router.get('/search', searchProducts);
 router.get('/:id', getProductById);              // Get a single product by ID (public access)
 
 

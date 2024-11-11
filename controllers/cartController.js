@@ -6,9 +6,15 @@ const addToCart = async (req, res) => {
         
         const userId = req.user._id; // Assuming user authentication middleware adds user to req
         const { productId, quantity } = req.body;
+        
         // Check if the product exists
         const product = await Product.findById(productId);
         if (!product) return res.status(404).json({ message: 'Product not found' });
+
+        // Check if the requested quantity is available in stock
+        if (product.stock < quantity) {
+            return res.status(400).json({ message: 'Not enough stock available' });
+        }
 
         // Find or create the user's cart
         let cart = await Cart.findOne({ user: userId });
@@ -21,13 +27,29 @@ const addToCart = async (req, res) => {
             const itemIndex = cart.items.findIndex(item => item.product.toString() === productId);
 
             if (itemIndex > -1) {
-                // If product already exists, update the quantity
-                cart.items[itemIndex].quantity += quantity;
+                // If product already exists, check if enough stock is available after adding
+                const existingItem = cart.items[itemIndex];
+                const totalQuantity = existingItem.quantity + quantity;
+
+                if (product.stock < totalQuantity) {
+                    return res.status(400).json({ message: 'Not enough stock available' });
+                }
+
+                // Update the quantity of the existing item
+                cart.items[itemIndex].quantity = totalQuantity;
             } else {
                 // Otherwise, add a new item to the cart
+                if (product.stock < quantity) {
+                    return res.status(400).json({ message: 'Not enough stock available' });
+                }
+
                 cart.items.push({ product: productId, quantity });
             }
         }
+
+        // Subtract the added quantity from the product stock
+        product.stock -= quantity;
+        await product.save();
 
         // Save the cart
         await cart.save();
@@ -37,6 +59,7 @@ const addToCart = async (req, res) => {
         res.status(500).json({ message: 'Server error while adding to cart' });
     }
 };
+
 
 const getCart = async (req, res) => {
     try {

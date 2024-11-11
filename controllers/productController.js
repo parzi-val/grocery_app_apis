@@ -58,43 +58,43 @@ const deleteProduct = async (req, res) => {
 
 const searchProducts = async (req, res) => {
     try {
-        const { name, categories, minPrice, maxPrice } = req.query; // Changed `category` to `categories`
-        const filter = {};
-
-        // Check if any search criteria are provided
-        if (name || categories || minPrice || maxPrice) {
-            // If a name query parameter is provided, use it as a case-insensitive regex
-            if (name) {
-                filter.name = { $regex: name, $options: 'i' }; // Case-insensitive search
-            }
-
-            // If categories are provided, filter by multiple categories
-            if (categories) {
-                const categoryArray = Array.isArray(categories) ? categories : [categories]; // Ensure categories is an array
-                filter.category = { $in: categoryArray }; // Use $in for multiple categories
-            }
-
-            // If price range is provided, filter by min and/or max price
-            if (minPrice || maxPrice) {
-                filter.price = {};
-                if (minPrice) filter.price.$gte = parseFloat(minPrice); // Ensure price is a number
-                if (maxPrice) filter.price.$lte = parseFloat(maxPrice); // Ensure price is a number
-            }
-
-            // Find products based on the filter criteria
-            const products = await Product.find(filter);
+        if (Object.keys(req.query).length === 0) {
+            const products = await Product.find();
             return res.status(200).json(products);
-        } else {
-            // If no query parameters are provided, return all products
-            const allProducts = await Product.find();
-            return res.status(200).json(allProducts);
         }
+        const { name, category, minPrice, maxPrice } = req.query;
+        console.log("Query params:", req.query); // For debugging
+        const filter = {}; // Initialize an empty filter
+
+        // Add to filter only if a query parameter is provided
+        if (name) {
+            filter.name = { $regex: name, $options: 'i' }; // Case-insensitive search
+        }
+
+        if (category) {
+            // Check if category is a single string, then split it into an array
+            const categoryArray = Array.isArray(category) ? category : category.split(',');
+            filter.category = { $in: categoryArray }; // Exact match for any of the specified categories
+        }
+        
+        if (minPrice || maxPrice) {
+            filter.price = {};
+            if (minPrice) filter.price.$gte = parseFloat(minPrice);
+            if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
+        }
+
+        // Check if filter is empty (no query params provided)
+        if (Object.keys(filter).length === 0) {
+            return res.status(400).json({ message: 'No filter criteria provided' });
+        }
+
+        const products = await Product.find(filter);
+        return res.status(200).json(products);
     } catch (error) {
-        console.error(error);
+        console.error("Error fetching products:", error);
         res.status(500).json({ message: 'Server error during search' });
     }
 };
-
 
 
 const getCategories = async (req, res) => {

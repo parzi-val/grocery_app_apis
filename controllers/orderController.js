@@ -1,6 +1,8 @@
 const Cart = require('../models/Cart');
 const Order = require('../models/Order');
 const User = require('../models/User');
+const Delivery = require('../models/Delivery'); // Adjust path if necessary
+
 
 const checkoutOrder = async (req, res) => {
     try {
@@ -30,7 +32,7 @@ const checkoutOrder = async (req, res) => {
             user: userId,
             items,
             totalAmount,
-            status: 'Pending',  // Initial status
+            status: 'Pending Payment',  // Initial status
         });
 
         await newOrder.save();
@@ -142,4 +144,89 @@ const getOrderHistory = async (req, res) => {
     }
 };
 
-module.exports = { checkoutOrder, getOrderById, getOrderHistory };
+// Get all orders, optionally by user
+const getAllOrders = async (req, res) => {
+    try {
+        const userId = req.query.userId;
+        const filter = userId ? { user: userId } : {};
+
+        const orders = await Order.find(filter)
+            .populate('user', 'name email') // populate user details if needed
+            .populate('items.product', 'name price'); // populate product details in items
+
+        res.status(200).json(orders);
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving orders', error });
+    }
+};
+
+// Update an order's status or fields
+const updateOrder = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { status } = req.body;
+
+        // Find order by ID and update the status
+        const updatedOrder = await Order.findByIdAndUpdate(
+            orderId,
+            { status },
+            { new: true, runValidators: true }
+        ).populate('user', 'name email')
+         .populate('items.product', 'name price');
+
+        if (!updatedOrder) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        res.status(200).json(updatedOrder);
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating order', error });
+    }
+};
+
+// Delete an order
+const deleteOrder = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+
+        const deletedOrder = await Order.findByIdAndDelete(orderId);
+
+        if (!deletedOrder) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        res.status(200).json({ message: 'Order deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting order', error });
+    }
+};
+
+
+// Controller to retrieve orders assigned to a specific delivery person
+const getOrdersAssignedToDeliveryPerson = async (req, res) => {
+    try {
+        const deliveryPersonId = req.user._id;
+
+        // Find all deliveries assigned to the delivery person
+        const deliveries = await Delivery.find({ deliveryPersonnel: deliveryPersonId })
+            .populate('order') // Populate the order details
+            .exec();
+
+        // Check if any deliveries are found
+        if (deliveries.length === 0) {
+            return res.status(404).json({ message: 'No orders assigned to this delivery person' });
+        }
+
+        // Extract order details from the populated deliveries
+        const orders = deliveries.map(delivery => delivery.order);
+
+        // Return the list of orders assigned to the delivery person
+        res.status(200).json(orders);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error retrieving orders' });
+    }
+};
+
+
+module.exports = { checkoutOrder, getOrderById, getOrderHistory, getAllOrders, updateOrder, deleteOrder,getOrdersAssignedToDeliveryPerson };

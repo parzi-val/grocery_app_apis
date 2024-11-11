@@ -18,8 +18,8 @@ const isAdmin = async (req, res, next) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        
-        if (user.type !== 'admin') {
+        console.log(user.type)
+        if (user.type !== 'admin' && user.type !== 'delivery') {
             return res.status(403).json({ message: 'Access Denied: Admins only' });
         }
 
@@ -27,8 +27,13 @@ const isAdmin = async (req, res, next) => {
         req.user = user; // Optionally add user info to req for further use
         next();
     } catch (error) {
-        console.error(error);
-        res.status(401).json({ message: 'Invalid token' });
+        if (error instanceof jwt.TokenExpiredError) {
+            console.error(error);
+            res.status(403).json({ message: 'Token expired' }); // Handle token expiration specifically
+        } else {
+            console.error(error);
+            res.status(500).json({ message: 'Server error' }); // Handle all other errors
+        }
     }
 };
 

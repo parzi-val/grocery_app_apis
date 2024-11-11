@@ -11,7 +11,7 @@ const registerUser = async (req, res) => {
     await body('name').notEmpty().withMessage('Name is required').run(req);
     await body('email').isEmail().withMessage('Valid email is required').run(req);
     await body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters').run(req);
-    await body('type').isIn(['customer', 'admin', 'delivery person']).withMessage('Invalid user type').run(req);
+    await body('type').isIn(['customer', 'admin', 'delivery']).withMessage('Invalid user type').run(req);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -39,7 +39,7 @@ const registerUser = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
-    }Toke
+    }
 };
 
 
